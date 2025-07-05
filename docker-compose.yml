@@ -4,70 +4,69 @@ services:
   # Serviço de Banco de Dados - PostgreSQL
   # Para persistir dados de usuários e status de vídeos
   db:
-    image: postgres:15-alpine # Versão leve do PostgreSQL
+    image: postgres:15-alpine
     container_name: video-db
     environment:
       POSTGRES_DB: fiap_x_db
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
     ports:
-      - "5432:5432" # Mapeia a porta do container para a porta da sua máquina local
+      - "5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
-      - ./sql:/docker-entrypoint-initdb.d # Adiciona o volume para os scripts SQL de inicialização
-    healthcheck: # Healthcheck para garantir que o banco está pronto
+      - ./sql:/docker-entrypoint-initdb.d
+    healthcheck:
       test: ["CMD-SHELL", "pg_isready -U user -d fiap_x_db"]
       interval: 5s
       timeout: 5s
       retries: 5
 
   # Serviço de Mensageria - RabbitMQ
-  # [cite_start]Essencial para processar múltiplos vídeos em picos e não perder requisições [cite: 24, 25]
+  # Essencial para processar mais de um vídeo ao mesmo tempo e não perder requisições em picos
   rabbitmq:
-    image: rabbitmq:3-management-alpine # RabbitMQ com interface de gerenciamento
+    image: rabbitmq:3-management-alpine
     container_name: video-rabbitmq
     ports:
-      - "5672:5672" # Porta para comunicação das aplicações
-      - "15672:15672" # Porta para a interface de gerenciamento (http://localhost:15672)
+      - "5672:5672"
+      - "15672:15672"
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
-    healthcheck: # Healthcheck básico para RabbitMQ
+    healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
       interval: 5s
       timeout: 5s
       retries: 5
 
-  # [cite_start]Serviço de Autenticação de Usuários [cite: 26]
+  # Serviço de Autenticação de Usuários - Protegido por usuário e senha
   user-auth-service:
-    build: ../user-auth-service # Aponta para o Dockerfile no repositório user-auth-service
+    build: ../user-auth-service
     container_name: user-auth-service
     ports:
-      - "5000:5000" # Mapeia a porta do container para a porta da sua máquina local
+      - "5000:5000"
     environment:
-      DB_HOST: db # Nome do serviço do banco de dados no docker-compose
-      DB_NAME: fiap_x_db
-      DB_USER: user
-      DB_PASS: password
-      PORT: 5000 # A porta que o seu Go app vai escutar dentro do container
-    depends_on:
-      db:
-        condition: service_healthy # Garante que o DB esteja pronto antes de subir
-    restart: on-failure # Reinicia o serviço se ele falhar
-
-  # Serviço de Processamento de Vídeos
-  video-processor-service:
-    build: ../video-processor-service # Aponta para o Dockerfile no repositório video-processor-service
-    container_name: video-processor-service
-    ports:
-      - "5001:5001" # Porta para acessar este serviço (diferente do Auth Service)
-    environment:
-      # Variáveis para conexão com o DB
       DB_HOST: db
       DB_NAME: fiap_x_db
       DB_USER: user
       DB_PASS: password
-      # Variáveis para conexão com o RabbitMQ
+      PORT: 5000
+      JWT_SECRET: "this_is_a_very_long_and_complex_secret_key_for_jwt_fiap_x_project_2025_generated_securely_random" # Chave JWT de exemplo
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: on-failure
+
+  # Serviço de Processamento de Vídeos
+  video-processor-service:
+    build: ../video-processor-service
+    container_name: video-processor-service
+    ports:
+      - "5001:5001"
+    environment:
+      DB_HOST: db
+      DB_NAME: fiap_x_db
+      DB_USER: user
+      DB_PASS: password
       RABBITMQ_HOST: rabbitmq
       RABBITMQ_USER: guest
       RABBITMQ_PASS: guest
@@ -76,8 +75,8 @@ services:
       db:
         condition: service_healthy
       rabbitmq:
-        condition: service_healthy # Garante que o RabbitMQ esteja pronto antes de subir
-    restart: on-failure # Reinicia o serviço se ele falhar
+        condition: service_healthy
+    restart: on-failure
 
 volumes:
-  db_data: # Define o volume para o banco de dados
+  db_data:
