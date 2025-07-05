@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  # Serviço de Banco de Dados - PostgreSQL
+  # Para persistir dados de usuários e status de vídeos
+  db:
+    image: postgres:15-alpine # Versão leve do PostgreSQL
+    container_name: video-db
+    environment:
+      POSTGRES_DB: fiap_x_db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432" # Mapeia a porta do container para a porta da sua máquina local
+    volumes:
+      - db_data:/var/lib/postgresql/data # Volume para persistir os dados do banco
+    healthcheck: # Healthcheck para garantir que o banco está pronto
+      test: ["CMD-SHELL", "pg_isready -U user -d fiap_x_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Serviço de Mensageria - RabbitMQ
+  # Essencial para processar múltiplos vídeos em picos e não perder requisições [cite: 24, 25, 42]
+  rabbitmq:
+    image: rabbitmq:3-management-alpine # RabbitMQ com interface de gerenciamento
+    container_name: video-rabbitmq
+    ports:
+      - "5672:5672" # Porta para comunicação das aplicações
+      - "15672:15672" # Porta para a interface de gerenciamento (http://localhost:15672)
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck: # Healthcheck básico para RabbitMQ
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  db_data: # Define o volume para o banco de dados
