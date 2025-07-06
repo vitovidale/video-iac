@@ -75,7 +75,7 @@ services:
       PORT: 5001
       JWT_SECRET: "a_very_secure_and_random_jwt_secret_for_fiap_x_tests_gGf09sLp1k2JqW3rT4yU5iO6pA7sD8fG9hJ0kL1zX2cV3bN4mM5qQ6wE7rT8yU9iO0pA1sD2f" # << MESMA CHAVE DO USER-AUTH-SERVICE!
     volumes:
-      - processed_videos_data:/app/processed_videos # <--- NOVO: Volume para persistir os vídeos processados
+      - processed_videos_data:/app/processed_videos # Volume para persistir os vídeos processados
     depends_on:
       db:
         condition: service_healthy
@@ -83,6 +83,19 @@ services:
         condition: service_healthy # Garante que o RabbitMQ esteja pronto antes de subir
     restart: on-failure # Reinicia o serviço se ele falhar
 
+  # NOVO SERVIÇO: Front-end (Nginx para servir arquivos estáticos)
+  frontend:
+    build: ../gray-video-portal # Aponta para o Dockerfile do seu front-end
+    container_name: gray-video-portal-frontend
+    ports:
+      - "80:80" # Mapeia a porta 80 do contêiner para a porta 80 da sua máquina local
+    depends_on:
+      user-auth-service:
+        condition: service_started # Depende do auth service para iniciar
+      video-processor-service:
+        condition: service_started # Depende do processor service para iniciar
+    restart: on-failure
+
 volumes:
   db_data: # Define o volume para o banco de dados
-  processed_videos_data: # <--- NOVO: Declara o volume nomeado para vídeos processados
+  processed_videos_data: # Declara o volume nomeado para vídeos processados
