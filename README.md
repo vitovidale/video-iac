@@ -4,8 +4,7 @@ Este repositório contém a infraestrutura como código para o projeto de Proces
 
 ## Estrutura do Projeto e Componentes Orquestrados
 
-<img width="890" height="897" alt="image" src="https://github.com/user-attachments/assets/892794b8-b6b3-4441-b840-380af6133324" />
-
+<img width="885" height="914" alt="image" src="https://github.com/user-attachments/assets/b2ff3965-e705-414c-badb-84997326b433" />
 
 Este repositório é o ponto central para levantar o ambiente local completo, que inclui:
 
