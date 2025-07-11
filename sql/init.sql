@@ -10,20 +10,6 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- Opcional: Adiciona um usuário padrão para testes rápidos
--- Em produção, isso seria gerenciado de outra forma
--- IMPORTANTE: Substitua o hash abaixo por um hash bcrypt REAL da senha 'admin'!
--- Você pode gerar um hash bcrypt em Go facilmente com golang.org/x/crypto/bcrypt
--- Exemplo de como gerar em Go:
--- package main
--- import "golang.org/x/crypto/bcrypt"
--- import "fmt"
--- func main() {
---     password := "admin"
---     hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
---     fmt.Println(string(hashedPassword))
--- }
--- Execute isso localmente para obter o hash e cole-o aqui.
 INSERT INTO users (username, password_hash, email)
 VALUES ('admin', '$2a$10$C8q.f3x.N7.z5Y3z9.z3Y.O2m.d.S.r.F.P.g.H.j.K.L.M.n.o.p.q.r.s.t.u.v.w.x.y.z.', 'admin@fiapx.com')
 ON CONFLICT (username) DO NOTHING;

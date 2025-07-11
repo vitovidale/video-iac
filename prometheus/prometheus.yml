@@ -1,0 +1,18 @@
+global:
+  scrape_interval: 15s # Raspar métricas a cada 15 segundos
+
+scrape_configs:
+  # Job para monitorar o próprio Prometheus
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090'] # Porta padrão do Prometheus
+
+  # Job para monitorar o user-auth-service
+  - job_name: 'user-auth-service'
+    static_configs:
+      - targets: ['user-auth-service:5000'] # Nome do serviço e porta no Docker Compose
+
+  # Job para monitorar o video-processor-service
+  - job_name: 'video-processor-service'
+    static_configs:
+      - targets: ['video-processor-service:5001'] # Nome do serviço e porta no Docker Compose
